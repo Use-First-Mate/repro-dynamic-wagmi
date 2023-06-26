@@ -1,3 +1,9 @@
+## DynamicWagmiConnector x Wagmi in connect-only mode
+This is a fresh create-next-app with wagmi and dynamic-sdk with wagmi-connector.
+You can see in index.js that `useAccount` from wagmi is not picking up on the connected account after triggering with `setShowAuthFlow`
+
+You can see the demo yourself at https://repro-dynamic-wagmi.vercel.app/
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
