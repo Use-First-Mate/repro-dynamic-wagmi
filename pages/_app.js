@@ -8,9 +8,15 @@ export default function App({ Component, pageProps }) {
   return (
     <DynamicContextProvider
       settings={{
+        environmentId: prod,
+        initialAuthenticationMode: 'connect-only',
+        walletConnectV1Bridge: 'https://derelay.rabby.io/',
+      }}
+/*    // turn on v2 and note that network switching doesnt work
+      settings={{
         environmentId: staging,
         initialAuthenticationMode: 'connect-and-sign',
-      }}
+      }} */
     >
       <DynamicWagmiConnector>
         <Component {...pageProps} />
