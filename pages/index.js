@@ -2,16 +2,27 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import { useAccount } from 'wagmi'
+import { useAccount, useBlockNumber, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi'
 import { useDynamicContext } from '@dynamic-labs/sdk-react'
+import { useState , useEffect} from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => setIsMounted(true), [])
+
   const account = useAccount()
-  const { user , primaryWallet, setShowAuthFlow } = useDynamicContext()
-  console.log("Home: account is %o, user is %o, primaryWallet is %o", account, user, primaryWallet)
-  return (
+  const { user , primaryWallet, setShowAuthFlow, walletConnector } = useDynamicContext()
+  const { chains, chain, } = useNetwork()
+  const { switchNetworkAsync, switchNetwork, pendingChainId } = useSwitchNetwork({
+    chainId: 10,
+  })
+  const {disconnect} = useDisconnect()
+  const blockNum = useBlockNumber({ watch: true })
+  //console.log("Home: account is %o, user is %o, primaryWallet is %o", account, user, primaryWallet)
+  console.log("useNetwork(): is %o, Chains is %o, switchNetwork is %o", chain, chains, switchNetworkAsync)
+  return !isMounted ? null : (
     <>
       <Head>
         <title>Create Next App</title>
@@ -20,10 +31,32 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
+        <div key='0'>Block number {blockNum.data}</div>
         <div key='1'>Wagmi Account: {account.address ? `Connected to ${account.address}` : `Not connected`}</div>
+        <div key='100'>{`const { chain, chains } = useNetwork()`}</div>
+        <div key='101'>chain?.id returns {JSON.stringify(chain?.id, null, 2)}</div>
+        <div key='111'> {`chains.map(c => c.id) returns `} {JSON.stringify(chains.map(c => c?.id),null,2)}</div>
+        <button onClick={() => setShowAuthFlow(true)}>
+          {`setShowAuthFlow(true)`}
+        </button>
+        <button onClick={() => disconnect()}>{`disconnect()`}</button>
+        <button onClick={async () => {
+          console.log("I am switching to polygon. Current chain is %o", chain?.id)
+          const resp = await switchNetworkAsync()
+          switchNetwork()
+          console.log("wagmi says done switching networks. It responded %o", resp)
+        }}>{`const { switchNetwork } = useSwitchNetwork({chainId: 10})`}</button>
+        <button onClick={async () => {
+          console.log("About to switch networks via dynamic. Wallet Connector switch support? %o", walletConnector.supportsNetworkSwitching)
+          const resp = await walletConnector.switchNetwork({ networkChainId: 10})
+          console.log("Done switching networks. the switchNetwork function returned %o", resp)
+        }}
+        >{`(from useDynamicContext) walletConnector.switchNetwork({ networkChainId: 10})`}</button>
+        <br />
+        <hr />
+        <br />
         <div key='2'>Dynamic user: {user ? JSON.stringify(user, null, 2) : 'Undefined'}</div>
-        <div key='3'>Dynamic primaryWallet: {primaryWallet ? JSON.stringify(primaryWallet, null, 2) : 'Undefined'}</div>
-        <button onClick={() => setShowAuthFlow(true)}>Connect</button>
+        <div key='3'>Dynamic primaryWallet: <pre>{primaryWallet ? JSON.stringify(primaryWallet, null, 2) : 'Undefined'}</pre></div>
       </main>
     </>
   )
